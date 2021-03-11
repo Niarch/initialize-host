@@ -8,6 +8,23 @@
 # git clone tmux and move to relevant location
 #sudo 
 
+declare -a PACKAGES
+
+PACKAGES=(
+    curl
+    neovim
+    tmux
+    zsh
+    libsecret-1-dev
+    gnome-keyring
+    virtualenv
+    openconnect
+    network-manager-openconnect
+    tlp
+    acpi-call-dkms
+    openssh-server
+)
+
 function show_usage(){
     echo "Usage : This is initialization script to install required packages"
     echo "Options: "
@@ -29,6 +46,21 @@ function print_error(){
     echo -e "${red}[E] $1${reset}"
 }
 
+function install_via_package_manager(){
+    for package in ${PACKAGES[@]} 
+    do
+        print_info "Installing package $package"
+        # TODO : Check how the below command can be generalized based on PKG_MAN
+        sudo apt install -y $package
+    done
+}
+
+function is_installed(){
+    dpkg -s $1 | grep 'Status: install ok installed' >> /dev/null
+    exit_code=$?
+    echo $exit_code
+}
+
 ## Main Function
 
 # Get the installation medium from commandline argument
@@ -38,9 +70,9 @@ while [ ! -z "$1" ]; do
     elif [[ $1 ==  "-l" ]] || [[ "$1" == "--linux" ]]; then
         LINUX="$2"
         if [[ $LINUX == "ubuntu" ]];then
-            PACKAGE_MANAGER="apt install"
-        elif [[ $LINUX == "manjaro" ]];then
-            PACKAGE_MANAGER="pacman -S"
+            PACKAGE_MANAGER="apt"
+            sudo $PACKAGE_MANAGER update
+            sudo $PACKAGE_MANAGER -y upgrade
         fi
         print_info "PACKAGE MANAGER to be used will be '$PACKAGE_MANAGER'"
         shift
@@ -51,4 +83,21 @@ while [ ! -z "$1" ]; do
 shift
 done
 
+# Install packages via package manager
+# install_via_package_manager 
 
+########################### Configuring defaults ###############################
+# Package : neovim
+status="$(is_installed neovim)"
+if [ $status = 0 ]; then
+    # set neovim as default editor
+    print_info "Making neovim the default editor"
+    sudo update-alternatives --set editor /usr/bin/nvim
+fi
+# Package : zsh
+status="$(is_installed zsh)"
+if [ $status = 0 ]; then
+    # Set zsh as default shell for logged in user
+    print_info "Changing default shell to be zsh"
+    chsh -s $(which zsh)
+fi
