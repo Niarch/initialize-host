@@ -8,6 +8,23 @@
 # git clone tmux and move to relevant location
 #sudo 
 
+declare -a PACKAGES
+
+PACKAGES=(
+    curl
+    neovim
+    tmux
+    zsh
+    libsecret-1-dev
+    gnome-keyring
+    virtualenv
+    openconnect
+    network-manager-openconnect
+    tlp
+    acpi-call-dkms
+    openssh-server
+)
+
 function show_usage(){
     echo "Usage : This is initialization script to install required packages"
     echo "Options: "
@@ -29,6 +46,14 @@ function print_error(){
     echo -e "${red}[E] $1${reset}"
 }
 
+function install_via_package_manager(){
+    for package in ${PACKAGES[@]} 
+    do
+        print_info "Installing package $package"
+        sudo apt install -y $package
+    done
+}
+
 ## Main Function
 
 # Get the installation medium from commandline argument
@@ -38,7 +63,7 @@ while [ ! -z "$1" ]; do
     elif [[ $1 ==  "-l" ]] || [[ "$1" == "--linux" ]]; then
         LINUX="$2"
         if [[ $LINUX == "ubuntu" ]];then
-            PACKAGE_MANAGER="apt install"
+            PACKAGE_MANAGER="apt"
         elif [[ $LINUX == "manjaro" ]];then
             PACKAGE_MANAGER="pacman -S"
         fi
@@ -51,4 +76,5 @@ while [ ! -z "$1" ]; do
 shift
 done
 
-
+# Install packages via package manager
+install_via_package_manager 
