@@ -9,6 +9,8 @@
 #sudo 
 
 declare -a PACKAGES
+declare -a ADDITIONAL_PPA
+declare -a ADDITIONAL_PACKAGES
 
 PACKAGES=(
     curl
@@ -23,6 +25,15 @@ PACKAGES=(
     tlp
     acpi-call-dkms
     openssh-server
+)
+
+ADDITIONAL_PPA=(
+   kelleyk/emacs 
+)
+
+ADDITIONAL_PACKAGES=(
+    emacs27
+    spotify-client
 )
 
 function show_usage(){
@@ -47,7 +58,8 @@ function print_error(){
 }
 
 function install_via_package_manager(){
-    for package in ${PACKAGES[@]} 
+    packages=("$@")
+    for package in ${packages[@]}
     do
         print_info "Installing package $package"
         # TODO : Check how the below command can be generalized based on PKG_MAN
@@ -59,6 +71,19 @@ function is_installed(){
     dpkg -s $1 | grep 'Status: install ok installed' >> /dev/null
     exit_code=$?
     echo $exit_code
+}
+
+function add_ppa(){
+    print_info "Adding ppa:$1"
+    sudo add-apt-repository -y ppa:$1
+}
+
+function add_spotify_repo(){
+  print_info "Adding Spotify Deb package to source.list"
+  curl -sS https://download.spotify.com/debian/pubkey_0D811D58.gpg \
+      | sudo apt-key add -   
+  echo "deb http://repository.spotify.com stable non-free" \
+      | sudo tee /etc/apt/sources.list.d/spotify.list
 }
 
 ## Main Function
@@ -83,9 +108,11 @@ while [ ! -z "$1" ]; do
 shift
 done
 
-# Install packages via package manager
-install_via_package_manager 
 
+# Install packages via package manager
+print_info "Installing packages via Package manager"
+install_via_package_manager ${PACKAGES[@]} 
+: '
 ########################### Configuring defaults ###############################
 # Package : neovim
 status="$(is_installed neovim)"
@@ -101,3 +128,16 @@ if [ $status = 0 ]; then
     print_info "Changing default shell to be zsh"
     chsh -s $(which zsh)
 fi
+
+
+################### Packages that needs to be added to ppa #####################
+for package in ${ADDITIONAL_PPA[@]}
+do
+    add_ppa $package
+done
+
+add_spotify_repo
+
+# Run install via pkm once all packages configured
+install_via_package_manager $ADDITIONAL_PACKAGES
+'
