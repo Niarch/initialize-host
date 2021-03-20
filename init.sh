@@ -84,7 +84,7 @@ shift
 done
 
 # Install packages via package manager
-# install_via_package_manager 
+install_via_package_manager 
 
 ########################### Configuring defaults ###############################
 # Package : neovim
