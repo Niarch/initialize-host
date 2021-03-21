@@ -112,7 +112,7 @@ done
 # Install packages via package manager
 print_info "Installing packages via Package manager"
 install_via_package_manager ${PACKAGES[@]} 
-: '
+
 ########################### Configuring defaults ###############################
 # Package : neovim
 status="$(is_installed neovim)"
@@ -139,5 +139,5 @@ done
 add_spotify_repo
 
 # Run install via pkm once all packages configured
-install_via_package_manager $ADDITIONAL_PACKAGES
-'
+install_via_package_manager ${ADDITIONAL_PACKAGES[@]}
+
