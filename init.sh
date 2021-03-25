@@ -1,18 +1,12 @@
 #!/bin/bash
 
-#sudo apt install neovim
-#sudo update-alternatvies --config editor
-# git clone nvim setup and move to relevant location
-#sudo apt install curl
-#sudo apt install tmux
-# git clone tmux and move to relevant location
-#sudo 
-
 declare -a PACKAGES
 declare -a ADDITIONAL_PPA
 declare -a ADDITIONAL_PACKAGES
+declare -a REPOSITORIES
 
 PACKAGES=(
+    git
     curl
     neovim
     tmux
@@ -25,6 +19,10 @@ PACKAGES=(
     tlp
     acpi-call-dkms
     openssh-server
+    apt-transport-https
+    ca-ceritificates
+    gnupg
+    lsb-release
 )
 
 ADDITIONAL_PPA=(
@@ -34,6 +32,13 @@ ADDITIONAL_PPA=(
 ADDITIONAL_PACKAGES=(
     emacs27
     spotify-client
+    docker-ce
+    docker-ce-cli
+    containerd.io
+)
+
+REPOSITORIES=(
+   https://github.com/Niarch/dotfiles.git 
 )
 
 function show_usage(){
@@ -78,7 +83,7 @@ function add_ppa(){
     sudo add-apt-repository -y ppa:$1
 }
 
-function add_spotify_repo(){
+function pre_spotify_install(){
   print_info "Adding Spotify Deb package to source.list"
   curl -sS https://download.spotify.com/debian/pubkey_0D811D58.gpg \
       | sudo apt-key add -   
@@ -86,10 +91,78 @@ function add_spotify_repo(){
       | sudo tee /etc/apt/sources.list.d/spotify.list
 }
 
-## Main Function
+function pre_docker_install(){
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+    echo \
+        "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+        $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+}
 
+function configuring_default(){
+    # Package : neovim
+    status="$(is_installed neovim)"
+    if [ $status = 0 ]; then
+        # set neovim as default editor
+        print_info "Making neovim the default editor"
+        sudo update-alternatives --set editor /usr/bin/nvim
+    fi
+    # Package : zsh
+    status="$(is_installed zsh)"
+    if [ $status = 0 ]; then
+        # Set zsh as default shell for logged in user
+        print_info "Changing default shell to be zsh"
+        chsh -s $(which zsh)
+    fi
+}
+
+function update_ppa(){
+
+    for package in ${ADDITIONAL_PPA[@]}
+    do
+        add_ppa $package
+    done
+
+    pre_spotify_install
+
+    pre_docker_install
+}
+
+function clone_to_configure(){
+    # OhMyZsh
+    print_info "Installing Oh My Zsh"
+    curl -fsSL \
+        https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
+    # TODO Need to make my own zshrc config evnetually
+
+    # Doom-emacs
+    print_info "Installing Doom emacs"
+    rm -rf ~/.emacs.d
+    git clone --depth 1 https://github.com/hlissner/doom-emacs ~/.emacs.d
+    ~/.emacs.d/bin/doom install
+
+    # Vim and Tmux conf
+    # Install Vim-plug first
+    print_info "Installing Vim-Plug"
+    curl -fLo ~/.local/share/nvim/site/autoload/plug.vim \
+        --create-dirs \
+        https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+    print_info "User needs to manually run 'PluginInstall' after init.vim is ready"
+
+    # Clone dotfiles repository
+    print_info "Cloning Dotfiles from personal repo"
+    git clone https://github.com/Niarch/dotfiles.git /tmp/dotfiles
+    # vim config
+    mkdir $HOME/.config/nvim
+    mv /tmp/dotfiles/.config/nvim/init.vim $HOME/.config/nvim/init.vim
+    print_info "Setup neovim config completed"
+    # tmux config
+    mv /tmp/dotfiles/.tmux.conf $HOME/.tmux.conf
+    print_info "Setup tmux config completed"
+}
+
+:'
 # Get the installation medium from commandline argument
-while [ ! -z "$1" ]; do
+#while [ ! -z "$1" ]; do
     if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
         show_usage
     elif [[ $1 ==  "-l" ]] || [[ "$1" == "--linux" ]]; then
@@ -107,37 +180,21 @@ while [ ! -z "$1" ]; do
     fi
 shift
 done
+'
 
+function main(){
+    # Install packages via package manager
+    print_info "Installing packages via Package manager"
+    install_via_package_manager ${PACKAGES[@]}
 
-# Install packages via package manager
-print_info "Installing packages via Package manager"
-install_via_package_manager ${PACKAGES[@]} 
+    configuring_default
 
-########################### Configuring defaults ###############################
-# Package : neovim
-status="$(is_installed neovim)"
-if [ $status = 0 ]; then
-    # set neovim as default editor
-    print_info "Making neovim the default editor"
-    sudo update-alternatives --set editor /usr/bin/nvim
-fi
-# Package : zsh
-status="$(is_installed zsh)"
-if [ $status = 0 ]; then
-    # Set zsh as default shell for logged in user
-    print_info "Changing default shell to be zsh"
-    chsh -s $(which zsh)
-fi
+    update_ppa
 
+    install_via_package_manager ${ADDITIONAL_PACKAGES[@]}
 
-################### Packages that needs to be added to ppa #####################
-for package in ${ADDITIONAL_PPA[@]}
-do
-    add_ppa $package
-done
+    clone_to_configure
+}
 
-add_spotify_repo
-
-# Run install via pkm once all packages configured
-install_via_package_manager ${ADDITIONAL_PACKAGES[@]}
-
+# Calling main function
+main
