@@ -160,6 +160,28 @@ function clone_to_configure(){
     print_info "Setup tmux config completed"
 }
 
+function prompy_install_deb_package(){
+	#prompt user to Proceed once all the deb packages are available in /tmp dir
+	print_info "Please Download following deb packages under /tmp folder \n 1) Slack \n 2) outlook \n 3) mailspring \n 4) code \n 5) discord \n 6) virtualbox \n 7) steam "
+	# TODO Need to also add links to download page
+	read -p "Proceed [Y/N]" answer
+	while true
+	do
+		case $answer in
+		 [Y]* ) print_info "prcoeeding with installing deb packages"
+		        for file in /tmp/*.deb
+		        do
+				print_info "Install deb $file"
+				sudo dpkg -i $file
+			done
+			break;;
+		 [N]* ) print_error "You have choosen to skip deb installation, please refer to script for pending task"
+			exit;;
+		esac
+	done
+
+}
+
 :'
 # Get the installation medium from commandline argument
 #while [ ! -z "$1" ]; do
@@ -194,6 +216,8 @@ function main(){
     install_via_package_manager ${ADDITIONAL_PACKAGES[@]}
 
     clone_to_configure
+
+    prompt_install_deb_package
 }
 
 # Calling main function
