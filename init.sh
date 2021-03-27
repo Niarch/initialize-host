@@ -116,6 +116,7 @@ function configuring_default(){
         chsh -s $(which zsh)
     fi
     # Remove sudo access for docker commands
+    print_info "Adding $USER to docker group"
     sudo usermod -aG docker $USER
 }
 
@@ -126,6 +127,7 @@ function update_ppa(){
     pre_docker_install
 
     # Add key to github cli ppa
+    print_info "Adding keys required for Github CLI"
     sudo apt-key adv --keyserver \
         keyserver.ubuntu.com --recv-key C99B11DEB97541F0
 
@@ -173,6 +175,7 @@ function clone_to_configure(){
     gh release download --repo be5invis/Iosevka \
         --pattern 'ttf-iosevka-slab-*' --dir /tmp
     # TODO need to make this cleaner
+    print_info "Extracting and staging Iosevka fonts to ~/.fonts"
     cd /tmp && unzip *.zip
     mkdir ~/.fonts
     mv /tmp/*.ttf ~/.fonts/
@@ -198,6 +201,20 @@ function prompt_install_deb_package(){
 		esac
 	done
 
+}
+
+function post_script_message(){
+    echo "Please proceed with using the packages/softwares installed and configured"\
+        "Following software require user login"\
+        "Firefox"\
+        "Dropbox - Registrationa and sync"\
+        "Mailspring"\
+        "VPN"\
+        "Microsoft Teams"\
+        "Outlook Office"\
+        "Spotify"\
+        "Discord"\
+        "Steam"
 }
 
 :'
@@ -237,6 +254,8 @@ function main(){
     clone_to_configure
 
     prompt_install_deb_package
+
+    post_script_message
 }
 
 # Calling main function
