@@ -27,6 +27,7 @@ PACKAGES=(
 
 ADDITIONAL_PPA=(
    kelleyk/emacs 
+   https://cli.github.com/packages
 )
 
 ADDITIONAL_PACKAGES=(
@@ -35,6 +36,7 @@ ADDITIONAL_PACKAGES=(
     docker-ce
     docker-ce-cli
     containerd.io
+    gh
 )
 
 REPOSITORIES=(
@@ -80,7 +82,7 @@ function is_installed(){
 
 function add_ppa(){
     print_info "Adding ppa:$1"
-    sudo add-apt-repository -y ppa:$1
+    sudo apt-add-repository -y ppa:$1
 }
 
 function pre_spotify_install(){
@@ -119,14 +121,18 @@ function configuring_default(){
 
 function update_ppa(){
 
+    pre_spotify_install
+
+    pre_docker_install
+
+    # Add key to github cli ppa
+    sudo apt-key adv --keyserver \
+        keyserver.ubuntu.com --recv-key C99B11DEB97541F0
+
     for package in ${ADDITIONAL_PPA[@]}
     do
         add_ppa $package
     done
-
-    pre_spotify_install
-
-    pre_docker_install
 }
 
 function clone_to_configure(){
@@ -160,6 +166,16 @@ function clone_to_configure(){
     # tmux config
     mv /tmp/dotfiles/.tmux.conf $HOME/.tmux.conf
     print_info "Setup tmux config completed"
+
+    # TODO Run above commands with gh cli commands
+    # Package: Iosevka fonts
+    gh auth login
+    gh release download --repo be5invis/Iosevka \
+        --pattern 'ttf-iosevka-slab-*' --dir /tmp
+    # TODO need to make this cleaner
+    cd /tmp && unzip *.zip
+    mkdir ~/.fonts
+    mv /tmp/*.ttf ~/.fonts/
 }
 
 function prompt_install_deb_package(){
