@@ -20,13 +20,18 @@ PACKAGES=(
     acpi-call-dkms
     openssh-server
     apt-transport-https
-    ca-ceritificates
+    ca-certificates
     gnupg
     lsb-release
+    libappindicator1
+    libc++1
+    gconf2
+    python
+    python3
 )
 
 ADDITIONAL_PPA=(
-   kelleyk/emacs 
+   kelleyk/emacs
    https://cli.github.com/packages
 )
 
@@ -183,14 +188,14 @@ function clone_to_configure(){
 
 function prompt_install_deb_package(){
 	#prompt user to Proceed once all the deb packages are available in /tmp dir
-    print_info "Please Download following deb packages under /tmp folder \n 1) Slack \n 2) outlook \n 3) mailspring \n 4) code \n 5) discord \n 6) virtualbox \n 7) steam \n 8)Dropbox"
+    print_info "Please Download following deb packages under ~/Downloads folder \n 1) Slack (https://slack.com/intl/en-in/downloads/linux) \n 2) outlook (https://github.com/tomlm/electron-outlook/releases) \n 3) mailspring (https://getmailspring.com/download) \n 4) code (https://code.visualstudio.com/Download) \n 5) discord (https://discord.com/download) \n 6) virtualbox (https://www.virtualbox.org/wiki/Linux_Downloads) \n 7) steam (https://store.steampowered.com/about/) \n 8) Dropbox (https://www.dropbox.com/install-linux)"
 	# TODO Need to also add links to download page
 	read -p "Proceed [Y/N]" answer
 	while true
 	do
 		case $answer in
-		 [Y]* ) print_info "prcoeeding with installing deb packages"
-		        for file in /tmp/*.deb
+		 [Y]* ) print_info "Proceeding with installing deb packages"
+		        for file in ~/Downloads/*.deb
 		        do
 				print_info "Install deb $file"
 				sudo dpkg -i $file
@@ -217,27 +222,7 @@ function post_script_message(){
         "Steam"
 }
 
-:'
-# Get the installation medium from commandline argument
-#while [ ! -z "$1" ]; do
-    if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
-        show_usage
-    elif [[ $1 ==  "-l" ]] || [[ "$1" == "--linux" ]]; then
-        LINUX="$2"
-        if [[ $LINUX == "ubuntu" ]];then
-            PACKAGE_MANAGER="apt"
-            sudo $PACKAGE_MANAGER update
-            sudo $PACKAGE_MANAGER -y upgrade
-        fi
-        print_info "PACKAGE MANAGER to be used will be '$PACKAGE_MANAGER'"
-        shift
-    else
-        print_error "Incorrect input provided"
-        show_usage
-    fi
-shift
-done
-'
+# TODO Choose OS from CLI arg and proceed
 
 function main(){
     # Install packages via package manager
