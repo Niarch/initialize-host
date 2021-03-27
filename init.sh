@@ -113,6 +113,8 @@ function configuring_default(){
         print_info "Changing default shell to be zsh"
         chsh -s $(which zsh)
     fi
+    # Remove sudo access for docker commands
+    sudo usermod -aG docker $USER
 }
 
 function update_ppa(){
@@ -160,9 +162,9 @@ function clone_to_configure(){
     print_info "Setup tmux config completed"
 }
 
-function prompy_install_deb_package(){
+function prompt_install_deb_package(){
 	#prompt user to Proceed once all the deb packages are available in /tmp dir
-	print_info "Please Download following deb packages under /tmp folder \n 1) Slack \n 2) outlook \n 3) mailspring \n 4) code \n 5) discord \n 6) virtualbox \n 7) steam "
+    print_info "Please Download following deb packages under /tmp folder \n 1) Slack \n 2) outlook \n 3) mailspring \n 4) code \n 5) discord \n 6) virtualbox \n 7) steam \n 8)Dropbox"
 	# TODO Need to also add links to download page
 	read -p "Proceed [Y/N]" answer
 	while true
@@ -209,11 +211,12 @@ function main(){
     print_info "Installing packages via Package manager"
     install_via_package_manager ${PACKAGES[@]}
 
-    configuring_default
 
     update_ppa
 
     install_via_package_manager ${ADDITIONAL_PACKAGES[@]}
+
+    configuring_default
 
     clone_to_configure
 
