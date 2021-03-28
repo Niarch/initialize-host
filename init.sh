@@ -145,8 +145,8 @@ function update_ppa(){
 function clone_to_configure(){
     # OhMyZsh
     print_info "Installing Oh My Zsh"
-    curl -fsSL \
-        https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
+    sh -c "$(curl -fsSL \
+        https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
     # TODO Need to make my own zshrc config evnetually
 
     # Doom-emacs
