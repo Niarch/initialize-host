@@ -26,3 +26,7 @@ wget -L https://raw.githubusercontent.com/Niarch/initialize-host/main/init.sh
 #### Arbitrary
 
 - Install/Use Iosevka Font as needed
+
+## TODO
+
+- [ ] Add zsh-autosuggestions and zsh-syntax-highlighting plugin support 
