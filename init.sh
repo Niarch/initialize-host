@@ -23,7 +23,7 @@ PACKAGES=(
     ca-certificates
     gnupg
     lsb-release
-    libappindicator1
+    libappindicator3-1
     libc++1
     gconf2
     python
